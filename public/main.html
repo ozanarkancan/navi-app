@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hello World</title>
+  </head>
+    <script src="js/pixi.min.js"></script>
+    <script type="text/javascript" src="js/jquery.js"></script>
+<body>
+  <script type="text/javascript">
+    let type = "WebGL"
+    if(!PIXI.utils.isWebGLSupported()){
+      type = "canvas"
+    }
+    let Application = PIXI.Application,
+            loader = PIXI.loader,
+            resources = PIXI.loader.resources,
+            Sprite = PIXI.Sprite;
+    //Create a Pixi Application
+    let app = new Application({width: 720, height: 720});
+    app.renderer.autoResize = true;
+    //Add the canvas that Pixi automatically created for you to the HTML document
+    document.body.appendChild(app.view);
+
+    loader.add("img/blue.png").load(setup);
+
+    function setup() {
+        //Create the cat sprite
+        let blue1 = new Sprite(resources["img/blue.png"].texture);
+        blue1.width = 40
+        blue1.height = 80
+        blue1.x = 256;
+        blue1.y = 256;
+            
+        let blue2 = new Sprite(resources["img/blue.png"].texture);
+        blue2.width = 40
+        blue2.height = 80
+        blue2.x = 10;
+        blue2.y = 10;
+
+        //Add the cat to the stage
+        app.stage.addChild(blue1);
+        app.stage.addChild(blue2);
+    }
+    $("#rmapform").submit(function(event){
+      var $form = $( this ),
+      height = $form.find( "input[name='h']" ).val(),
+      width = $form.find( "input[name='w']" ).val(),
+      url = $form.attr( "action" );
+
+      alert("Hello! I am an alert box!!");
+      
+     $( "#result" ).empty().append("Processing");
+      var posting = $.post("/rmap", { h: height, w: width} );
+      
+      posting.done(function( data ) {
+
+        var content = $( data ).find( "#content" );
+        $( "#result" ).empty().append( content );
+      });
+    });
+  
+  </script>
+
+  <form action="" method="post" id="rmapform">
+    <label >Height:</label> <input type="text" name="h" id="h"><br>
+    <label >Width:</label> <input type="text" name="w" id="w"><br>
+    <input type="submit" id="rmap_btn" value="Random Map">
+  </form>
+  
+  <form action="" method="post">
+    Instruction: <input type="text" name="instruction"><br>
+    <input type="submit" id="execute_btn" value="Execute">
+  </form>
+
+  <div id="result">Hello There!</div>
+
+</body>
+</html>

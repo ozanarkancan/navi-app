@@ -1,0 +1,3 @@
+[submodule "lib/SAILx"]
+	path = lib/SAILx
+	url = git@github.com:ozanarkancan/SAILx.git
