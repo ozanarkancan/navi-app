@@ -5,7 +5,7 @@
     <title>Hello World</title>
   </head>
     <script src="js/pixi.min.js"></script>
-    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
 <body>
   <script type="text/javascript">
     let type = "WebGL"
@@ -17,63 +17,66 @@
             resources = PIXI.loader.resources,
             Sprite = PIXI.Sprite;
     //Create a Pixi Application
-    let app = new Application({width: 720, height: 720});
+    let app = new Application({width: 520, height: 520});
     app.renderer.autoResize = true;
     //Add the canvas that Pixi automatically created for you to the HTML document
     document.body.appendChild(app.view);
+    
+    function loadCompleted(){ console.log("All files loaded.");}
 
-    loader.add("img/blue.png").load(setup);
+    loader.add(["img/stool.png", "img/chair.png", "img/easel.png",
+                "img/hatrack.png", "img/lamp.png", "img/sofa.png"])
+          .load(loadCompleted)
 
-    function setup() {
-        //Create the cat sprite
-        let blue1 = new Sprite(resources["img/blue.png"].texture);
-        blue1.width = 40
-        blue1.height = 80
-        blue1.x = 256;
-        blue1.y = 256;
-            
-        let blue2 = new Sprite(resources["img/blue.png"].texture);
-        blue2.width = 40
-        blue2.height = 80
-        blue2.x = 10;
-        blue2.y = 10;
+    let items = {1:"img/stool.png", 2:"img/chair.png", 3: "img/easel.png",
+             4:"img/hatrack.png", 5:"img/lamp.png", 6: "img/sofa.png"};
 
-        //Add the cat to the stage
-        app.stage.addChild(blue1);
-        app.stage.addChild(blue2);
+    function setup(navimap, h, w) {
+      for (var n in navimap["nodes"]){
+        t = parseTuple(n);
+        item = navimap["nodes"][n];
+        if (item < 7){
+          let itemt = new Sprite(resources[items[item]].texture);
+          itemt.width = Math.round(520/w) - 10
+          itemt.height = Math.round(520/h) - 10
+          itemt.x = Math.round(520/w) * (t[0] - 1)
+          itemt.y = Math.round(520/h) * (t[1] - 1)
+          app.stage.addChild(itemt)
+        }
+      }
     }
-    $("#rmapform").submit(function(event){
-      var $form = $( this ),
-      height = $form.find( "input[name='h']" ).val(),
-      width = $form.find( "input[name='w']" ).val(),
-      url = $form.attr( "action" );
 
-      alert("Hello! I am an alert box!!");
-      
-     $( "#result" ).empty().append("Processing");
-      var posting = $.post("/rmap", { h: height, w: width} );
-      
-      posting.done(function( data ) {
+    function parseTuple(t) {
+      return JSON.parse(t.replace(/\(/g, "[").replace(/\)/g, "]"));
+    }
 
-        var content = $( data ).find( "#content" );
-        $( "#result" ).empty().append( content );
+    function randomMap() {
+      var $form = $("#rmapform"),
+      height = $form.find("input[name='h']").val(),
+      width = $form.find("input[name='w']").val(),
+      url = $form.attr("action");
+
+      $.post(url, { h: height, w: width}, function(navimap, textStatus ) {
+        setup(navimap, height, width);
       });
-    });
-  
+    function predict(){
+      url = $form.attr("action");
+      $.post("")
+    }
+
+      return false;
+    }
   </script>
 
-  <form action="" method="post" id="rmapform">
+  <form action="/rmap" method="post" id="rmapform" onsubmit="return false">
     <label >Height:</label> <input type="text" name="h" id="h"><br>
     <label >Width:</label> <input type="text" name="w" id="w"><br>
-    <input type="submit" id="rmap_btn" value="Random Map">
+    <input type="button" id="rmap_btn" value="Random Map" onclick="randomMap()">
   </form>
-  
-  <form action="" method="post">
+
+  <form action="/execute" method="post" onsubmit="return false">
     Instruction: <input type="text" name="instruction"><br>
-    <input type="submit" id="execute_btn" value="Execute">
+    <input type="submit" id="execute_btn" value="Execute"onclick="predict()">
   </form>
-
-  <div id="result">Hello There!</div>
-
 </body>
 </html>
