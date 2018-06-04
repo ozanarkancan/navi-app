@@ -17,7 +17,9 @@
             resources = PIXI.loader.resources,
             Sprite = PIXI.Sprite;
     //Create a Pixi Application
-    let app = new Application({width: 520, height: 520});
+    let WIDTH = 900;
+    let HEIGHT = 600;
+    let app = new Application({width: WIDTH, height: HEIGHT});
     app.renderer.autoResize = true;
     //Add the canvas that Pixi automatically created for you to the HTML document
     document.body.appendChild(app.view);
@@ -25,23 +27,95 @@
     function loadCompleted(){ console.log("All files loaded.");}
 
     loader.add(["img/stool.png", "img/chair.png", "img/easel.png",
-                "img/hatrack.png", "img/lamp.png", "img/sofa.png"])
+                "img/hatrack.png", "img/lamp.png", "img/sofa.png",
+                "img/blue.png", "img/brick.png", "img/concrete.png",
+                "img/flower.png", "img/grass.png", "img/gravel.png",
+                "img/wood.png", "img/yellow.png", "img/butterfly.png",
+                "img/fish.png", "img/eiffel.png"])
           .load(loadCompleted)
 
     let items = {1:"img/stool.png", 2:"img/chair.png", 3: "img/easel.png",
              4:"img/hatrack.png", 5:"img/lamp.png", 6: "img/sofa.png"};
+    let floors = {1:"img/blue.png", 2:"img/brick.png", 3: "img/concrete.png",
+             4:"img/flower.png", 5:"img/grass.png", 6: "img/gravel.png",
+             7:"img/wood.png", 8:"img/yellow.png"};
+    let walls = {1:"img/butterfly.png", 2:"img/fish.png", 3:"img/eiffel.png"}
 
     function setup(navimap, h, w) {
       for (var n in navimap["nodes"]){
         t = parseTuple(n);
         item = navimap["nodes"][n];
-        if (item < 7){
-          let itemt = new Sprite(resources[items[item]].texture);
-          itemt.width = Math.round(520/w) - 10
-          itemt.height = Math.round(520/h) - 10
-          itemt.x = Math.round(520/w) * (t[0] - 1)
-          itemt.y = Math.round(520/h) * (t[1] - 1)
-          app.stage.addChild(itemt)
+        if (n in navimap["edges"]){
+          if (item < 7){
+            let itemt = new Sprite(resources[items[item]].texture);
+            itemt.width = Math.round(WIDTH/w * 0.6)
+            itemt.height = Math.round(HEIGHT/h * 0.6)
+            itemt.x = Math.round(WIDTH/w) * (t[0] - 1) + Math.round(WIDTH/w * 0.2)
+            itemt.y = Math.round(HEIGHT/h) * (t[1] - 1) + Math.round(HEIGHT/h * 0.2)
+            app.stage.addChild(itemt)
+          } else{
+            let rectangle = new PIXI.Graphics();
+            rectangle.beginFill(0xFFFFFF);
+            rectangle.drawRect(0, 0, Math.round(WIDTH/w * 0.6), Math.round(HEIGHT/h * 0.6));
+            rectangle.x = Math.round(WIDTH/w) * (t[0] - 1) + Math.round(WIDTH/w * 0.2);
+            rectangle.y = Math.round(HEIGHT/h) * (t[1] - 1) + Math.round(HEIGHT/h * 0.2);
+            app.stage.addChild(rectangle);
+          }
+        }
+      }
+      var i;
+      var j;
+      for (i=1; i < h+1; i++){
+        for (j=1; j < w+1; j++){
+            var n1 = "("+j+", "+i+")"
+            var n2 = "("+(j+1)+", "+i+")"
+            var n3 = "("+j+", "+(i+1)+")"
+            if (n1 in navimap["edges"]){
+              if (n2 in navimap["edges"][n1]){
+                patterns = navimap["edges"][n1][n2]
+                let floor = new Sprite(resources[floors[patterns[1]]].texture)
+                floor.width = Math.round(WIDTH/w * 0.4)
+                floor.height = Math.round(HEIGHT/h * 0.4)
+                floor.x = Math.round(WIDTH/w) * (j - 1) + Math.round(WIDTH/w * 0.8)
+                floor.y = Math.round(HEIGHT/h) * (i - 1) + Math.round(HEIGHT/h * 0.3)
+                app.stage.addChild(floor)
+                let wall = new Sprite(resources[walls[patterns[0]]].texture)
+                wall.width = Math.round(WIDTH/w * 0.4)
+                wall.height = Math.round(HEIGHT/h * 0.1)
+                wall.x = Math.round(WIDTH/w) * (j - 1) + Math.round(WIDTH/w * 0.8)
+                wall.y = Math.round(HEIGHT/h) * (i - 1) + Math.round(HEIGHT/h * 0.2)
+                app.stage.addChild(wall)
+                let wall2 = new Sprite(resources[walls[patterns[0]]].texture)
+                wall2.width = Math.round(WIDTH/w * 0.4)
+                wall2.height = Math.round(HEIGHT/h * 0.1)
+                wall2.x = Math.round(WIDTH/w) * (j - 1) + Math.round(WIDTH/w * 0.8)
+                wall2.y = Math.round(HEIGHT/h) * (i - 1) + Math.round(HEIGHT/h * 0.7)
+                app.stage.addChild(wall2)
+
+              }
+              if (n3 in navimap["edges"][n1]){
+                patterns = navimap["edges"][n1][n3]
+                let floor = new Sprite(resources[floors[patterns[1]]].texture)
+                floor.width = Math.round(WIDTH/w * 0.4)
+                floor.height = Math.round(HEIGHT/h * 0.4)
+                floor.x = Math.round(WIDTH/w) * (j - 1) + Math.round(WIDTH/w * 0.3)
+                floor.y = Math.round(HEIGHT/h) * (i - 1) + Math.round(HEIGHT/h * 0.8)
+                app.stage.addChild(floor)
+                let wall = new Sprite(resources[walls[patterns[0]]].texture)
+                wall.width = Math.round(WIDTH/w * 0.1)
+                wall.height = Math.round(HEIGHT/h * 0.4)
+                wall.x = Math.round(WIDTH/w) * (j - 1) + Math.round(WIDTH/w * 0.2)
+                wall.y = Math.round(HEIGHT/h) * (i - 1) + Math.round(HEIGHT/h * 0.8)
+                app.stage.addChild(wall)
+                let wall2 = new Sprite(resources[walls[patterns[0]]].texture)
+                wall2.width = Math.round(WIDTH/w * 0.1)
+                wall2.height = Math.round(HEIGHT/h * 0.4)
+                wall2.x = Math.round(WIDTH/w) * (j - 1) + Math.round(WIDTH/w * 0.7)
+                wall2.y = Math.round(HEIGHT/h) * (i - 1) + Math.round(HEIGHT/h * 0.8)
+                app.stage.addChild(wall2)
+
+              }
+            }
         }
       }
     }
@@ -57,7 +131,7 @@
       url = $form.attr("action");
 
       $.post(url, { h: height, w: width}, function(navimap, textStatus ) {
-        setup(navimap, height, width);
+        setup(navimap, parseInt(height), parseInt(width));
       });
     function predict(){
       url = $form.attr("action");
