@@ -14,5 +14,5 @@ end
 route("/execute", method=POST, named = :predict) do
     global navimap
     result = Agent.predict(@params(:instruction), eval(parse(@params(:initial))), navimap)
-    respond(Dict(:json => JSON.json(Dict(:path => convert(Array{Int}, result)))))
+    respond(Dict(:json => JSON.json(Dict(:path => result))))
 end

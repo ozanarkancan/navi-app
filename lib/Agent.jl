@@ -19,7 +19,7 @@ function loadmodel(fname; flex=true)
     return w
 end
 
-global models = [loadmodel(joinpath(App.config.server_document_root, "models/sail_vtest_grid1_"*"$i"*"_vtest_l_jelly.jld")) for i=1:10]
+global models = [loadmodel(joinpath(App.config.server_document_root, "models/sail_vtest_jelly2_"*"$i"*"_vtest_grid_l.jld")) for i=1:10]
 #global models = [loadmodel(joinpath(App.config.server_document_root, "models/sailx_base_"*"$i"*".jld")) for i=1:10]
 
 function predict(instruction, startpos, navimap)
@@ -29,8 +29,8 @@ function predict(instruction, startpos, navimap)
     ins_text = split(strip(instruction), "_")
     words = ins_arr(vocab, ins_text)
     args = Dict()
-    args["hidden"] = 100
-    args["embed"] = 100
+    args["hidden"] = 120
+    args["embed"] = 120
     args["limactions"] = 35
     args["bs"] = 1
     args["wvecs"] = false

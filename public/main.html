@@ -19,14 +19,14 @@
     //Create a Pixi Application
     let WIDTH = 900;
     let HEIGHT = 600;
-    let W = 0
-    let H = 0
+    let W = null
+    let H = null
     let app = new Application({width: WIDTH, height: HEIGHT});
     app.renderer.autoResize = true;
     //Add the canvas that Pixi automatically created for you to the HTML document
     document.body.appendChild(app.view);
 
-    let agent = false;
+    let agent = null;
 
     function loadCompleted(){
         agent = new Sprite(resources["img/pacman.png"].texture);
@@ -170,7 +170,7 @@
     }
     
     function executePath(path){
-      s = agentState
+      s = agentState;
       function move(){
         agent.anchor.set(0.0);
         if (s["o"] == 0){
@@ -200,9 +200,10 @@
         agent.anchor.set(0.5);
         agent.rotation = (((s["o"]-90) % 360) / 90) * ninety;
       }
+      
       action = {1:move, 2:right, 3:left}
       for(var i=0; i < path.length-1; i++){
-        setTimeout(action[path[i]], 1500)
+        setTimeout(action[path[i]], 1000)
       }
     }
 
@@ -212,9 +213,9 @@
       url = $form.attr("action");
       s = agentState;
       init = "(" + s["x"].toString() + "," + s["y"].toString() + "," + s["o"].toString() + ")";
-      $.post(url, { instruction: ins, initial: init}, function(path) {
-        executePath(path)
-        console.log(path)
+      $.post(url, { instruction: ins, initial: init}, function(data) {
+        executePath(data["path"])
+        console.log(data["path"])
       });
       return false;
     }
