@@ -251,7 +251,7 @@ function state_agent_centric(map, loc; vdims = [39, 39])
     return nv
 end
 
-function state_agent_centric_multihot(map::Map, loc)
+function state_agent_centric_multihot(map, loc)
     lfeatvec = length(Items) + length(Floors) + length(Walls) + 1
     view = zeros(Float32, 1, length(Items) + 4 * lfeatvec)
 

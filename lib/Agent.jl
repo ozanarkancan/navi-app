@@ -4,7 +4,7 @@ using JLD, App
 include("flex.jl")
 include("util.jl")
 
-global vocab = load(joinpath(App.config.server_document_root, "models/vocab.jld"), "vocab")
+global vocab = load(joinpath(App.config.server_document_root, "models/vocab_sail.jld"), "vocab")
 
 function loadmodel(fname; flex=true)
     w = Dict()
@@ -19,16 +19,18 @@ function loadmodel(fname; flex=true)
     return w
 end
 
-global models = [loadmodel(joinpath(App.config.server_document_root, "models/sailx_"*"$i"*".jld")) for i=1:10]
+global models = [loadmodel(joinpath(App.config.server_document_root, "models/sail_vtest_grid1_"*"$i"*"_vtest_l_jelly.jld")) for i=1:10]
+#global models = [loadmodel(joinpath(App.config.server_document_root, "models/sailx_base_"*"$i"*".jld")) for i=1:10]
 
 function predict(instruction, startpos, navimap)
     global models
     global vocab
 
-    ins_text = split(instruction, "_")
+    ins_text = split(strip(instruction), "_")
     words = ins_arr(vocab, ins_text)
     args = Dict()
-    args["hidden"] = 65
+    args["hidden"] = 100
+    args["embed"] = 100
     args["limactions"] = 35
     args["bs"] = 1
     args["wvecs"] = false
@@ -40,6 +42,7 @@ function predict(instruction, startpos, navimap)
     args["att"] = false
     args["inpout"] = true
     args["prevaout"] = false
+    args["beam"] = true
     args["attout"] = false
     args["beamsize"] = 10
     args["encoding"] = "grid"

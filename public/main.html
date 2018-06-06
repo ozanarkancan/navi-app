@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Hello World</title>
+    <title>Navigational Instruction Following</title>
   </head>
     <script src="js/pixi.min.js"></script>
     <script type="text/javascript" src="js/jquery.min.js"></script>
@@ -19,20 +19,27 @@
     //Create a Pixi Application
     let WIDTH = 900;
     let HEIGHT = 600;
+    let W = 0
+    let H = 0
     let app = new Application({width: WIDTH, height: HEIGHT});
     app.renderer.autoResize = true;
     //Add the canvas that Pixi automatically created for you to the HTML document
     document.body.appendChild(app.view);
-    
-    function loadCompleted(){ console.log("All files loaded.");}
+
+    let agent = false;
+
+    function loadCompleted(){
+        agent = new Sprite(resources["img/pacman.png"].texture);
+        console.log("All files loaded.");
+    }
 
     loader.add(["img/stool.png", "img/chair.png", "img/easel.png",
                 "img/hatrack.png", "img/lamp.png", "img/sofa.png",
                 "img/blue.png", "img/brick.png", "img/concrete.png",
                 "img/flower.png", "img/grass.png", "img/gravel.png",
                 "img/wood.png", "img/yellow.png", "img/butterfly.png",
-                "img/fish.png", "img/eiffel.png"])
-          .load(loadCompleted)
+                "img/fish.png", "img/eiffel.png", "img/pacman.png"])
+          .load(loadCompleted);
 
     let items = {1:"img/stool.png", 2:"img/chair.png", 3: "img/easel.png",
              4:"img/hatrack.png", 5:"img/lamp.png", 6: "img/sofa.png"};
@@ -41,7 +48,13 @@
              7:"img/wood.png", 8:"img/yellow.png"};
     let walls = {1:"img/butterfly.png", 2:"img/fish.png", 3:"img/eiffel.png"}
 
+    let agentState = {"x": 0, "y": 0, "o": 90}
+    let ninety = 1.5708
+
     function setup(navimap, h, w) {
+      app.stage.removeChildren()
+      agent.width = Math.round(WIDTH/w * 0.3)
+      agent.height = Math.round(HEIGHT/h * 0.3)
       for (var n in navimap["nodes"]){
         t = parseTuple(n);
         item = navimap["nodes"][n];
@@ -125,19 +138,84 @@
     }
 
     function randomMap() {
-      var $form = $("#rmapform"),
-      height = $form.find("input[name='h']").val(),
-      width = $form.find("input[name='w']").val(),
+      var $form = $("#rmapform");
+      height = $form.find("input[name='h']").val();
+      width = $form.find("input[name='w']").val();
       url = $form.attr("action");
 
       $.post(url, { h: height, w: width}, function(navimap, textStatus ) {
-        setup(navimap, parseInt(height), parseInt(width));
-      });
-    function predict(){
-      url = $form.attr("action");
-      $.post("")
+        H = parseInt(height)
+        W = parseInt(width)
+        setup(navimap, H, W);
+      }); 
+      return false;
+    }
+    
+    function setAgent() {
+      var $form = $("#agentform");
+      X = parseInt($form.find("input[name='X']").val());
+      Y = parseInt($form.find("input[name='Y']").val());
+      Orientation = parseInt($form.find("input[name='Orientation']").val());
+      agentState["x"] = X;
+      agentState["y"] = Y;
+      agentState["o"] = Orientation;
+
+      agent.x = Math.round(WIDTH/W) * (X - 1) + Math.round(WIDTH/W * 0.35);
+      agent.y = Math.round(HEIGHT/H) * (Y - 1) + Math.round(HEIGHT/H * 0.35);
+
+      agent.anchor.set(0.5);
+      agent.rotation = (((Orientation-90) % 360) / 90) * ninety;
+      app.stage.addChild(agent);
+      return false;
+    }
+    
+    function executePath(path){
+      s = agentState
+      function move(){
+        agent.anchor.set(0.0);
+        if (s["o"] == 0){
+          s["y"] = s["y"]-1;
+          agent.y = Math.round(HEIGHT/H) * (s["y"] - 1) + Math.round(HEIGHT/H * 0.35);
+        }
+        else if (s["o"] == 90){
+          s["x"] = s["x"]+1;
+          agent.x = Math.round(WIDTH/W) * (s["x"] - 1) + Math.round(WIDTH/W * 0.35);
+        }
+        else if (s["o"] == 180){
+          s["y"] = s["y"]+1;
+          agent.y = Math.round(HEIGHT/H) * (s["y"] - 1) + Math.round(HEIGHT/H * 0.35);
+        }
+        else if (s["o"] == 270){
+          s["x"] = s["x"]-1;
+          agent.x = Math.round(WIDTH/W) * (s["x"] - 1) + Math.round(WIDTH/W * 0.35);
+        }
+      }
+      function right(){
+        s["o"] = (s["o"] + 90) % 360
+        agent.anchor.set(0.5);
+        agent.rotation = (((s["o"]-90) % 360) / 90) * ninety;
+      }
+      function left(){
+        s["o"] = (s["o"] - 90) % 360
+        agent.anchor.set(0.5);
+        agent.rotation = (((s["o"]-90) % 360) / 90) * ninety;
+      }
+      action = {1:move, 2:right, 3:left}
+      for(var i=0; i < path.length-1; i++){
+        setTimeout(action[path[i]], 1500)
+      }
     }
 
+    function predict(){
+      $form = $("#executeform");
+      ins = $form.find("input[name='instruction']").val();
+      url = $form.attr("action");
+      s = agentState;
+      init = "(" + s["x"].toString() + "," + s["y"].toString() + "," + s["o"].toString() + ")";
+      $.post(url, { instruction: ins, initial: init}, function(path) {
+        executePath(path)
+        console.log(path)
+      });
       return false;
     }
   </script>
@@ -148,9 +226,17 @@
     <input type="button" id="rmap_btn" value="Random Map" onclick="randomMap()">
   </form>
 
-  <form action="/execute" method="post" onsubmit="return false">
+  <form action="/execute" method="post" id="executeform" onsubmit="return false">
     Instruction: <input type="text" name="instruction"><br>
     <input type="submit" id="execute_btn" value="Execute"onclick="predict()">
   </form>
+  
+  <form action="" method="post" id="agentform" onsubmit="return false">
+    <label >X:</label> <input type="text" name="X" id="X">
+    <label >Y:</label> <input type="text" name="Y" id="Y">
+    <label >Orientation:</label> <input type="text" name="Orientation" id="Orientation"><br>
+    <input type="submit" id="agent_btn" value="setAgent"onclick="setAgent()">
+  </form>
+
 </body>
 </html>
